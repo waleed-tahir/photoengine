@@ -1,0 +1,51 @@
+# Chromatica Pro - Core Dependencies
+# Python 3.11+ required
+
+# Color Science (CRITICAL: pin exact versions)
+colour-science==0.4.3
+numpy==1.24.3
+scipy==1.11.3
+
+# Image Processing
+opencv-python-headless==4.8.1.78
+Pillow==10.1.0
+imageio==2.31.6
+
+# PyTorch (CUDA 11.8)
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.1.0+cu118
+torchvision==0.16.0+cu118
+
+# Vision Transformer
+timm==0.9.12
+
+# GPU Acceleration
+numba==0.58.1
+cupy-cuda11x==12.2.0
+
+# Optimization
+scikit-learn==1.3.2
+scikit-image==0.22.0
+
+# UI (Qt6)
+PySide6==6.6.0
+pyopengl==3.1.6
+
+# Image I/O
+openimageio==2.4.12.0
+
+# Inference Optimization
+onnxruntime-gpu==1.16.1
+
+# Perceptual Loss
+lpips==0.1.4
+
+# Experiment Tracking
+wandb==0.16.0
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+
+# Type hints
+typing_extensions>=4.8.0
