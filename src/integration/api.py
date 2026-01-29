@@ -43,10 +43,10 @@ class ChromaticaAPI:
         self.config = config or {}
         
         # Initialize engines
-        from ..engines.hybrid.orchestrator import HybridOrchestrator
+        from src.engines.hybrid.orchestrator import HybridOrchestrator
         self.orchestrator = HybridOrchestrator()
         
-        from ..io.formats import ImageIO
+        from src.io.formats import ImageIO
         self.image_io = ImageIO
         
         logger.info("Chromatica API initialized")
@@ -142,8 +142,8 @@ class ChromaticaAPI:
     def export_lut(self, parameters_path: str, output_path: str,
                    size: int = 33, format: str = 'cube') -> Dict:
         """Export 3D LUT from parameters."""
-        from ..engines.parametric.parameters import ParametricParameters
-        from ..io.export import LUTExporter
+        from src.engines.parametric.parameters import ParametricParameters
+        from src.io.export import LUTExporter
         
         params = ParametricParameters.load(parameters_path)
         exporter = LUTExporter()
@@ -162,7 +162,7 @@ class ChromaticaAPI:
     
     def get_supported_cameras(self) -> list:
         """Get list of supported camera profiles."""
-        from ..core.aces_pipeline import ACESPipeline
+        from src.core.aces_pipeline import ACESPipeline
         pipeline = ACESPipeline()
         return list(pipeline.camera_profiles.keys())
     

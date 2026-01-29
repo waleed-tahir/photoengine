@@ -6,13 +6,12 @@ Intelligently combines parametric and neural engines for optimal results.
 
 import numpy as np
 import numpy.typing as npt
-from typing import Dict, Optional, Literal
+from typing import Dict, Optional, Literal, Callable
 import logging
 import time
 
-from ..parametric.solver import ParametricSolver
-from ..parametric.parameters import ParametricParameters
-from ..neural.inference import NeuralInference
+from src.engines.parametric.solver import ParametricSolver
+from src.engines.parametric.parameters import ParametricParameters
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +42,7 @@ class HybridOrchestrator:
         """Lazy load neural engine."""
         if self.neural is None:
             try:
+                from src.engines.neural.inference import NeuralInference
                 self.neural = NeuralInference(self.neural_model_path)
             except Exception as e:
                 logger.warning(f"Neural engine unavailable: {e}")
@@ -51,7 +51,8 @@ class HybridOrchestrator:
     
     def match(self, source: npt.NDArray, target: npt.NDArray,
               strategy: Literal['parametric', 'neural', 'hybrid', 'auto'] = 'auto',
-              mask: Optional[npt.NDArray] = None) -> Dict:
+              mask: Optional[npt.NDArray] = None,
+              progress_cb: Optional[Callable[[int], None]] = None) -> Dict:
         """
         Match source to target using specified strategy.
         
@@ -70,13 +71,15 @@ class HybridOrchestrator:
         if strategy == 'auto':
             strategy = self._auto_select_strategy(source, target)
         
+        if progress_cb: progress_cb(20)
         logger.info(f"Using strategy: {strategy}")
         
         if strategy == 'parametric':
-            result = self._match_parametric(source, target, mask)
+            result = self._match_parametric(source, target, mask, progress_cb=progress_cb)
         elif strategy == 'neural' and self._ensure_neural():
             result = self._match_neural(source, target)
         elif strategy == 'hybrid' and self._ensure_neural():
+            if progress_cb: progress_cb(40)
             result = self._match_hybrid(source, target, mask)
         else:
             # Fallback to parametric
@@ -112,9 +115,10 @@ class HybridOrchestrator:
             return 'parametric'
     
     def _match_parametric(self, source: npt.NDArray, target: npt.NDArray,
-                          mask: Optional[npt.NDArray]) -> Dict:
+                          mask: Optional[npt.NDArray],
+                          progress_cb: Optional[Callable[[int], None]] = None) -> Dict:
         """Pure parametric matching."""
-        result = self.parametric.match(source, target, mask)
+        result = self.parametric.match(source, target, mask, progress_cb=progress_cb)
         
         return {
             'output': self.parametric.apply(source, result['parameters']),
@@ -127,7 +131,7 @@ class HybridOrchestrator:
         params = self.neural.predict(source, target)
         output = self.parametric.apply(source, params)
         
-        from ...core.color_science import ColorScience
+        from src.core.color_science import ColorScience
         metrics = ColorScience.calculate_metrics(output, target)
         
         return {
@@ -144,7 +148,8 @@ class HybridOrchestrator:
         
         # Step 2: Refine with parametric optimization
         result = self.parametric.match(
-            source, target, mask, initial_params=initial_params
+            source, target, mask, initial_params=initial_params,
+            progress_cb=progress_cb
         )
         
         return {

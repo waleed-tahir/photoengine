@@ -74,8 +74,8 @@ def cmd_match(args):
     """Execute match command."""
     setup_logging(args.verbose)
     
-    from .io.formats import ImageIO
-    from .engines.hybrid.orchestrator import HybridOrchestrator
+    from src.io.formats import ImageIO
+    from src.engines.hybrid.orchestrator import HybridOrchestrator
     
     logger.info(f"Loading source: {args.source}")
     source, _ = ImageIO.read(args.source)
@@ -98,15 +98,15 @@ def cmd_match(args):
     
     # Export LUT
     if args.export_lut:
-        from .io.export import LUTExporter
+        from src.io.export import LUTExporter
         logger.info(f"Exporting LUT: {args.export_lut}")
         exporter = LUTExporter()
         exporter.export_cube(args.export_lut, result['parameters'])
     
     # Export CDL
     if args.export_cdl:
-        from .io.export import CDLExporter
-        from .engines.parametric.parameters import CDLParameters
+        from src.io.export import CDLExporter
+        from src.engines.parametric.parameters import CDLParameters
         # Convert params to CDL (simplified)
         cdl = CDLParameters(
             slope=(1.0, 1.0, 1.0),
@@ -129,8 +129,8 @@ def cmd_batch(args):
     """Execute batch command."""
     setup_logging(args.verbose)
     
-    from .io.formats import ImageIO
-    from .engines.hybrid.orchestrator import HybridOrchestrator
+    from src.io.formats import ImageIO
+    from src.engines.hybrid.orchestrator import HybridOrchestrator
     
     input_dir = Path(args.input_dir)
     output_dir = Path(args.output_dir)
@@ -171,17 +171,22 @@ def cmd_batch(args):
 
 def cmd_info(args):
     """Show system information."""
-    import torch
+    import sys
     import numpy as np
     
     print("Chromatica Pro - System Information")
     print("=" * 40)
     print(f"Python: {sys.version}")
     print(f"NumPy: {np.__version__}")
-    print(f"PyTorch: {torch.__version__}")
-    print(f"CUDA Available: {torch.cuda.is_available()}")
-    if torch.cuda.is_available():
-        print(f"CUDA Device: {torch.cuda.get_device_name(0)}")
+    
+    try:
+        import torch
+        print(f"PyTorch: {torch.__version__}")
+        print(f"CUDA Available: {torch.cuda.is_available()}")
+        if torch.cuda.is_available():
+            print(f"CUDA Device: {torch.cuda.get_device_name(0)}")
+    except ImportError:
+        print("PyTorch: Not installed")
     
     try:
         import colour

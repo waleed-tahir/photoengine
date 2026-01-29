@@ -73,12 +73,16 @@ if HAS_QT:
         
         def run(self):
             try:
-                from ..engines.hybrid.orchestrator import HybridOrchestrator
+                from src.engines.hybrid.orchestrator import HybridOrchestrator
                 
                 orchestrator = HybridOrchestrator()
                 self.progress.emit(10)
                 
-                result = orchestrator.match(self.source, self.target, strategy=self.mode)
+                result = orchestrator.match(
+                    self.source, self.target, 
+                    strategy=self.mode,
+                    progress_cb=self.progress.emit
+                )
                 self.progress.emit(100)
                 
                 self.finished.emit(result)
@@ -320,7 +324,7 @@ if HAS_QT:
                     self, "Export 3D LUT", "match.cube", "Cube LUT (*.cube)"
                 )
                 if path:
-                    from ..io.export import LUTExporter
+                    from src.io.export import LUTExporter
                     exporter = LUTExporter()
                     exporter.export_cube(path, self.match_result['parameters'])
                     self.status_bar.showMessage(f"Exported: {path}")

@@ -23,7 +23,7 @@ class LUTExporter:
             params: ParametricParameters or callable transform
             size: LUT size (17, 33, or 65 recommended)
         """
-        from ..engines.parametric.solver import ParametricSolver
+        from src.engines.parametric.solver import ParametricSolver
         
         path = Path(path)
         
@@ -59,7 +59,7 @@ class LUTExporter:
     
     def export_3dl(self, path: str, params, size: int = 33, bit_depth: int = 12):
         """Export .3dl format (legacy Lustre/Autodesk)."""
-        from ..engines.parametric.solver import ParametricSolver
+        from src.engines.parametric.solver import ParametricSolver
         
         path = Path(path)
         max_val = (2 ** bit_depth) - 1

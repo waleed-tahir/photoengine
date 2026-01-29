@@ -94,7 +94,7 @@ class ColorCheckerValidator:
         Returns:
             ValidationResult with detailed metrics
         """
-        from ..core.color_science import ColorScience
+        from src.core.color_science import ColorScience
         
         if reference_lab is None:
             reference_lab = np.array([p.lab_d50 for p in self.reference_patches])

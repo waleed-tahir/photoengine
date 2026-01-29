@@ -11,7 +11,7 @@ from typing import Dict, Optional
 import logging
 
 from .model import ChromaticaViT
-from ..parametric.parameters import ParametricParameters
+from src.engines.parametric.parameters import ParametricParameters
 
 logger = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ class NeuralInference:
     
     def _scale_parameters(self, params: npt.NDArray) -> npt.NDArray:
         """Scale tanh output [-1, 1] to parameter ranges."""
-        from ..parametric.parameters import get_parameter_bounds
+        from src.engines.parametric.parameters import get_parameter_bounds
         lower, upper = get_parameter_bounds()
         
         # Scale from [-1, 1] to [lower, upper]
@@ -104,6 +104,6 @@ class NeuralInference:
     def apply(self, image: npt.NDArray, 
               params: ParametricParameters) -> npt.NDArray:
         """Apply predicted parameters to image."""
-        from ..parametric.solver import ParametricSolver
+        from src.engines.parametric.solver import ParametricSolver
         solver = ParametricSolver()
         return solver.apply(image, params)

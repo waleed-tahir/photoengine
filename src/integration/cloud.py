@@ -226,8 +226,8 @@ class CloudProcessor:
                     self.storage.download(job.reference_key, str(reference_local))
                     
                     # Process
-                    from ..engines.hybrid.orchestrator import HybridOrchestrator
-                    from ..io.formats import ImageIO
+                    from src.engines.hybrid.orchestrator import HybridOrchestrator
+                    from src.io.formats import ImageIO
                     
                     source, _ = ImageIO.read(str(source_local))
                     reference, _ = ImageIO.read(str(reference_local))

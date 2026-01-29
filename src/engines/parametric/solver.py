@@ -13,7 +13,7 @@ import time
 import logging
 
 from .parameters import ParametricParameters, get_parameter_bounds
-from ...core.color_science import ColorScience
+from src.core.color_science import ColorScience
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,8 @@ class ParametricSolver:
     
     def _default_config(self) -> Dict:
         return {
-            'max_iterations': 500,
-            'tolerance': 1e-7,
+            'max_iterations': 100,
+            'tolerance': 1e-6,
             'method': 'L-BFGS-B',
             'regularization': {
                 'curve_smoothness': 0.01,
@@ -60,7 +60,8 @@ class ParametricSolver:
     
     def match(self, source: npt.NDArray, target: npt.NDArray,
               mask: Optional[npt.NDArray] = None,
-              initial_params: Optional[ParametricParameters] = None) -> Dict:
+              initial_params: Optional[ParametricParameters] = None,
+              progress_cb: Optional[Callable[[int], None]] = None) -> Dict:
         """
         Match source image to target image.
         
@@ -82,10 +83,6 @@ class ParametricSolver:
         if source.shape != target.shape:
             raise ValueError(f"Shape mismatch: source {source.shape} vs target {target.shape}")
         
-        # Convert to LAB for loss calculation
-        source_lab = ColorScience._simple_rgb_to_lab(source)
-        target_lab = ColorScience._simple_rgb_to_lab(target)
-        
         # Initial guess (identity or provided)
         if initial_params is not None:
             x0 = initial_params.to_vector()
@@ -94,18 +91,29 @@ class ParametricSolver:
         
         # Subsample for faster optimization (use every Nth pixel)
         h, w = source.shape[:2]
-        if h * w > 100000:
-            step = max(1, int(np.sqrt(h * w / 50000)))
+        if h * w > 10000:
+            step = max(1, int(np.sqrt(h * w / 5000)))
             source_sub = source[::step, ::step]
             target_sub = target[::step, ::step]
-            source_lab_sub = source_lab[::step, ::step]
-            target_lab_sub = target_lab[::step, ::step]
             mask_sub = mask[::step, ::step] if mask is not None else None
         else:
             source_sub, target_sub = source, target
-            source_lab_sub, target_lab_sub = source_lab, target_lab
             mask_sub = mask
         
+        # Convert subsampled pixels to LAB for loss calculation
+        source_lab_sub = ColorScience._simple_rgb_to_lab(source_sub)
+        target_lab_sub = ColorScience._simple_rgb_to_lab(target_sub)
+        
+        # Progress tracking
+        iter_count = [0]
+        max_iters = self.config['max_iterations']
+        
+        def opt_callback(xk):
+            iter_count[0] += 1
+            if progress_cb and max_iters > 0:
+                prog = 25 + int(60 * min(iter_count[0] / max_iters, 1.0))
+                progress_cb(prog)
+
         # Optimize
         result = minimize(
             fun=self._loss_function,
@@ -118,7 +126,8 @@ class ParametricSolver:
                 'ftol': self.config['tolerance'],
                 'gtol': self.config['tolerance'],
                 'disp': False
-            }
+            },
+            callback=opt_callback
         )
         
         # Extract parameters
